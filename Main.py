@@ -16,6 +16,7 @@ def load_image(name):
     image = pygame.image.load(fullname)
     return image
 
+
 class Level(pygame.sprite.Sprite):
     def __init__(self, *group):
         super().__init__(*group)
@@ -37,6 +38,8 @@ class Platform(pygame.sprite.Sprite):
 
     def update(self):
         pass
+
+
 def main():
     pygame.init()
     size = width, height = 1200, 800
