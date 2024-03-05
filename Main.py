@@ -58,6 +58,7 @@ class Character(pygame.sprite.Sprite):
     def update(self):
         pass
 
+
 def main():
     pygame.init()
     size = WIDTH, HEIGHT
