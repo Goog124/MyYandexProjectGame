@@ -32,6 +32,9 @@ class Ball(pygame.sprite.Sprite):
         self.image = Ball.image_platform
         self.rect = self.image.get_rect()
 
+    def update(self):
+        pass
+
 
 class Platform(pygame.sprite.Sprite):
     image_platform = load_image("platform_skin1.png")
@@ -59,6 +62,16 @@ class Character(pygame.sprite.Sprite):
         pass
 
 
+class Hand(pygame.sprite.Sprite):
+    image_flex_hand_part = load_image("Hand_part.png")
+
+    def __init__(self, *group):
+        super().__init__(*group)
+        self.image = Hand.image_flex_hand_part
+        self.rect = self.image.get_rect()
+
+
+
 def main():
     pygame.init()
     size = WIDTH, HEIGHT
@@ -69,6 +82,7 @@ def main():
     Platform(all_sprites)
     Ball(all_sprites)
     Character(all_sprites)
+    Hand(all_sprites)
 
     while running:
         for event in pygame.event.get():
