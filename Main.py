@@ -43,10 +43,12 @@ class Platform(pygame.sprite.Sprite):
         super().__init__(*group)
         self.image = Platform.image_platform
         self.rect = self.image.get_rect()
-        self.rect.y += 100
+        self.rect.x = Character.image_character.get_size()[0] + Hand.image_flex_hand_part.get_size()[0]
+        self.rect.y = HEIGHT - (Character.image_character.get_size()[1] - 101)
 
-    def update(self):
-        pass
+    def update(self, move=0):
+        if move:
+            self.rect.x += move
 
 
 class Character(pygame.sprite.Sprite):
@@ -69,7 +71,14 @@ class Hand(pygame.sprite.Sprite):
         super().__init__(*group)
         self.image = Hand.image_flex_hand_part
         self.rect = self.image.get_rect()
+        self.rect.x = Character.image_character.get_size()[0]
+        self.rect.y = HEIGHT - (Character.image_character.get_size()[1] - 128)
 
+    def update(self, *args, move=0):
+        if move:
+            self.image = pygame.transform.scale(self.image, (self.image.get_size()[0] + move,
+                                                self.image.get_size()[1]))
+            print(self.image.get_rect())
 
 
 def main():
@@ -79,18 +88,25 @@ def main():
     running = True
 
     all_sprites = pygame.sprite.Group()
-    Platform(all_sprites)
+    hand_sprite = pygame.sprite.Group()
+    Platform(all_sprites, hand_sprite)
     Ball(all_sprites)
     Character(all_sprites)
-    Hand(all_sprites)
+    Hand(all_sprites, hand_sprite)
 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    hand_sprite.update(move=-10)
+                elif event.key == pygame.K_RIGHT:
+                    hand_sprite.update(move=10)
 
         main_screen.fill((255, 255, 255))
         all_sprites.draw(main_screen)
+        hand_sprite.draw(main_screen)
         pygame.display.flip()
 
 
