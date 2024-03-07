@@ -4,10 +4,11 @@ import sys
 import random
 
 
-SPEED = 15
+BALL_SPEED = 15
 BASE_SIZE = 10
 WIDTH = 1200
 HEIGHT = 1000
+MOVE_SPEED = 20
 
 
 def load_image(name):
@@ -44,10 +45,11 @@ class Platform(pygame.sprite.Sprite):
         self.image = Platform.image_platform
         self.rect = self.image.get_rect()
         self.rect.x = Character.image_character.get_size()[0] + Hand.image_flex_hand_part.get_size()[0]
+        print(self.rect.x)
         self.rect.y = HEIGHT - (Character.image_character.get_size()[1] - 101)
 
     def update(self, move=0):
-        if move:
+        if move and (255 <= self.rect.x + move <= WIDTH - Platform.image_platform.get_size()[0]):
             self.rect.x += move
 
 
@@ -76,9 +78,10 @@ class Hand(pygame.sprite.Sprite):
 
     def update(self, *args, move=0):
         if move:
-            self.image = pygame.transform.scale(self.image, (self.image.get_size()[0] + move,
-                                                self.image.get_size()[1]))
-            print(self.image.get_rect())
+            size_x, size_y = self.image.get_size()
+            if Hand.image_flex_hand_part.get_size()[0] <= size_x + move:
+                self.image = pygame.transform.scale(self.image, (size_x + move, size_y))
+                print(size_x)
 
 
 def main():
@@ -100,9 +103,9 @@ def main():
                 running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    hand_sprite.update(move=-10)
+                    hand_sprite.update(move=-MOVE_SPEED)
                 elif event.key == pygame.K_RIGHT:
-                    hand_sprite.update(move=10)
+                    hand_sprite.update(move=MOVE_SPEED)
 
         main_screen.fill((255, 255, 255))
         all_sprites.draw(main_screen)
