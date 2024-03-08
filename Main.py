@@ -45,11 +45,14 @@ class Platform(pygame.sprite.Sprite):
         self.image = Platform.image_platform
         self.rect = self.image.get_rect()
         self.rect.x = Character.image_character.get_size()[0] + Hand.image_flex_hand_part.get_size()[0]
-        print(self.rect.x)
         self.rect.y = HEIGHT - (Character.image_character.get_size()[1] - 101)
 
-    def update(self, move=0):
-        if move and (255 <= self.rect.x + move <= WIDTH - Platform.image_platform.get_size()[0]):
+    def update(self, move=0, pos=0):
+        offset = Character.image_character.get_size()[0] + Hand.image_flex_hand_part.get_size()[0]
+        if pos and (offset <= pos[0] <= WIDTH - Platform.image_platform.get_size()[0]):
+            self.rect.x = pos[0]
+
+        if move and (offset <= self.rect.x + move <= WIDTH - Platform.image_platform.get_size()[0]):
             self.rect.x += move
 
 
@@ -76,12 +79,21 @@ class Hand(pygame.sprite.Sprite):
         self.rect.x = Character.image_character.get_size()[0]
         self.rect.y = HEIGHT - (Character.image_character.get_size()[1] - 128)
 
-    def update(self, *args, move=0):
+    def update(self, *args, move=0, pos=0):
+
+        if pos and pos[0] - Character.image_character.get_size()[0] > 0:
+            if Hand.image_flex_hand_part.get_size()[0] \
+                    <= pos[0] - Character.image_character.get_size()[0] <= \
+                    WIDTH - Platform.image_platform.get_size()[0] - Character.image_character.get_size()[0]:
+                self.image = pygame.transform.scale(self.image, (pos[0] - Character.image_character.get_size()[0],
+                                                             self.image.get_size()[1]))
+
         if move:
             size_x, size_y = self.image.get_size()
-            if Hand.image_flex_hand_part.get_size()[0] <= size_x + move:
+            if Hand.image_flex_hand_part.get_size()[0] \
+                    <= size_x + move <= \
+                    WIDTH - Platform.image_platform.get_size()[0] - Character.image_character.get_size()[0]:
                 self.image = pygame.transform.scale(self.image, (size_x + move, size_y))
-                print(size_x)
 
 
 def main():
@@ -101,6 +113,9 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.MOUSEMOTION:
+                hand_sprite.update(pos=event.pos)
+
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     hand_sprite.update(move=-MOVE_SPEED)
@@ -109,8 +124,9 @@ def main():
 
         main_screen.fill((255, 255, 255))
         all_sprites.draw(main_screen)
-        hand_sprite.draw(main_screen)
         pygame.display.flip()
+
+    pygame.quit()
 
 
 if __name__ == "__main__":
