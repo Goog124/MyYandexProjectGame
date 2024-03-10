@@ -25,6 +25,39 @@ class Level(pygame.sprite.Sprite):
         super().__init__(*group)
 
 
+class UpWall(pygame.sprite.Sprite):
+    image_upwall = load_image("up_wall.png")
+
+    def __init__(self, *group):
+        super().__init__(*group)
+        self.image = UpWall.image_upwall
+        self.rect = self.image.get_rect()
+        self.rect.x = WIDTH - self.image.get_size()[0]
+        self.rect.y = 0
+
+
+class LeftWall(pygame.sprite.Sprite):
+    image_leftwall = load_image("left_wall.png")
+
+    def __init__(self, *group):
+        super().__init__(*group)
+        self.image = LeftWall.image_leftwall
+        self.rect = self.image.get_rect()
+        self.rect.x = WIDTH - self.image.get_size()[0] - UpWall.image_upwall.get_size()[0]
+        self.rect.y = 0
+
+
+class RightWall(pygame.sprite.Sprite):
+    image_rightwall = load_image("right_wall.png")
+
+    def __init__(self, *group):
+        super().__init__(*group)
+        self.image = RightWall.image_rightwall
+        self.rect = self.image.get_rect()
+        self.rect.x = WIDTH - self.image.get_size()[0]
+        self.rect.y = 0
+
+
 class Ball(pygame.sprite.Sprite):
     image_platform = load_image("ball.png")
 
@@ -103,24 +136,28 @@ def main():
     running = True
 
     all_sprites = pygame.sprite.Group()
-    hand_sprite = pygame.sprite.Group()
-    Platform(all_sprites, hand_sprite)
+    hand_sprites = pygame.sprite.Group()
+    wall_sprites = pygame.sprite.Group()
+    Platform(all_sprites, hand_sprites)
     Ball(all_sprites)
     Character(all_sprites)
-    Hand(all_sprites, hand_sprite)
+    Hand(all_sprites, hand_sprites)
+    UpWall(all_sprites, wall_sprites)
+    LeftWall(all_sprites, wall_sprites)
+    RightWall(all_sprites, wall_sprites)
 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEMOTION:
-                hand_sprite.update(pos=event.pos)
+                hand_sprites.update(pos=event.pos)
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    hand_sprite.update(move=-MOVE_SPEED)
+                    hand_sprites.update(move=-MOVE_SPEED)
                 elif event.key == pygame.K_RIGHT:
-                    hand_sprite.update(move=MOVE_SPEED)
+                    hand_sprites.update(move=MOVE_SPEED)
 
         main_screen.fill((255, 255, 255))
         all_sprites.draw(main_screen)
