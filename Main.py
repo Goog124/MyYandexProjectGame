@@ -81,21 +81,34 @@ class BottomWall(pygame.sprite.Sprite):
 
 
 class Ball(pygame.sprite.Sprite):
-    image_platform = load_image("ball.png")
+    image_ball = load_image("moved_ball.png")
 
     def __init__(self, *group):
         super().__init__(*group)
-        self.image = Ball.image_platform
-        self.rect = self.image.get_rect()
-        self.rect.x = WIDTH // 2
-        self.rect.y = HEIGHT // 2
-        self.moving = False
+        self.frames = []
+        self.cut_sheet(Ball.image_ball, 3, 1)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(WIDTH // 2, HEIGHT // 2)
         self.clock = pygame.time.Clock()
 
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
     def update(self):
-        self.rect.x += BALL_SPEED
-        self.rect.y += BALL_SPEED
-        self.clock.tick(60)
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
+        #
+        # print(self.groups())
+        #
+        #
+        # self.clock.tick(60)
 
 
 class Platform(pygame.sprite.Sprite):
@@ -146,10 +159,15 @@ def main():
     hand_sprites = pygame.sprite.Group()
     ball_sprite = pygame.sprite.Group()
     wall_sprites = pygame.sprite.Group()
+
     Platform(all_sprites, hand_sprites)
+
     Ball(all_sprites, ball_sprite)
+
     Character(all_sprites)
+
     Hand(all_sprites, hand_sprites)
+
     UpWall(all_sprites, wall_sprites)
     LeftWall(all_sprites, wall_sprites)
     RightWall(all_sprites, wall_sprites)
@@ -161,7 +179,7 @@ def main():
                 running = False
             elif event.type == pygame.MOUSEMOTION:
                 hand_sprites.update(pos=event.pos)
-        ball_sprite.update()
+        all_sprites.update()
         main_screen.fill((255, 255, 255))
         all_sprites.draw(main_screen)
         pygame.display.flip()
