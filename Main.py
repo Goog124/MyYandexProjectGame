@@ -4,7 +4,7 @@ import sys
 import random
 
 
-BALL_SPEED = 15
+BALL_SPEED = 2
 WIDTH = 1200
 HEIGHT = 1000
 
@@ -89,9 +89,13 @@ class Ball(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = WIDTH // 2
         self.rect.y = HEIGHT // 2
+        self.moving = False
+        self.clock = pygame.time.Clock()
 
     def update(self):
-        pass
+        self.rect.x += BALL_SPEED
+        self.rect.y += BALL_SPEED
+        self.clock.tick(60)
 
 
 class Platform(pygame.sprite.Sprite):
@@ -140,9 +144,10 @@ def main():
 
     all_sprites = pygame.sprite.Group()
     hand_sprites = pygame.sprite.Group()
+    ball_sprite = pygame.sprite.Group()
     wall_sprites = pygame.sprite.Group()
     Platform(all_sprites, hand_sprites)
-    Ball(all_sprites)
+    Ball(all_sprites, ball_sprite)
     Character(all_sprites)
     Hand(all_sprites, hand_sprites)
     UpWall(all_sprites, wall_sprites)
@@ -156,7 +161,7 @@ def main():
                 running = False
             elif event.type == pygame.MOUSEMOTION:
                 hand_sprites.update(pos=event.pos)
-
+        ball_sprite.update()
         main_screen.fill((255, 255, 255))
         all_sprites.draw(main_screen)
         pygame.display.flip()
