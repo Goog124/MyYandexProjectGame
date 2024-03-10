@@ -5,10 +5,8 @@ import random
 
 
 BALL_SPEED = 15
-BASE_SIZE = 10
 WIDTH = 1200
 HEIGHT = 1000
-MOVE_SPEED = 20
 
 
 def load_image(name):
@@ -18,6 +16,19 @@ def load_image(name):
         sys.exit()
     image = pygame.image.load(fullname)
     return image
+
+
+class Character(pygame.sprite.Sprite):
+    image_character = load_image("character.png")
+
+    def __init__(self, *group):
+        super().__init__(*group)
+        self.image = Character.image_character
+        self.rect = self.image.get_rect()
+        self.rect.y = HEIGHT - self.image.get_size()[1]
+
+    def update(self):
+        pass
 
 
 class Level(pygame.sprite.Sprite):
@@ -58,6 +69,17 @@ class RightWall(pygame.sprite.Sprite):
         self.rect.y = 0
 
 
+class BottomWall(pygame.sprite.Sprite):
+    image_pool = load_image("pool.png")
+
+    def __init__(self, *group):
+        super().__init__(*group)
+        self.image = BottomWall.image_pool
+        self.rect = self.image.get_rect()
+        self.rect.x = Character.image_character.get_size()[0] - 2
+        self.rect.y = HEIGHT - BottomWall.image_pool.get_size()[1]
+
+
 class Ball(pygame.sprite.Sprite):
     image_platform = load_image("ball.png")
 
@@ -65,6 +87,8 @@ class Ball(pygame.sprite.Sprite):
         super().__init__(*group)
         self.image = Ball.image_platform
         self.rect = self.image.get_rect()
+        self.rect.x = WIDTH // 2
+        self.rect.y = HEIGHT // 2
 
     def update(self):
         pass
@@ -81,25 +105,11 @@ class Platform(pygame.sprite.Sprite):
         self.rect.y = HEIGHT - (Character.image_character.get_size()[1] - 101)
 
     def update(self, move=0, pos=0):
-        offset = Character.image_character.get_size()[0] + Hand.image_flex_hand_part.get_size()[0]
-        if pos and (offset <= pos[0] <= WIDTH - Platform.image_platform.get_size()[0]):
-            self.rect.x = pos[0]
-
-        if move and (offset <= self.rect.x + move <= WIDTH - Platform.image_platform.get_size()[0]):
-            self.rect.x += move
-
-
-class Character(pygame.sprite.Sprite):
-    image_character = load_image("character.png")
-
-    def __init__(self, *group):
-        super().__init__(*group)
-        self.image = Character.image_character
-        self.rect = self.image.get_rect()
-        self.rect.y = HEIGHT - self.image.get_size()[1]
-
-    def update(self):
-        pass
+        if pos:
+            left_edge = Character.image_character.get_size()[0] + LeftWall.image_leftwall.get_size()[0]
+            right_edge = WIDTH - RightWall.image_rightwall.get_size()[0] - Platform.image_platform.get_size()[0]
+            if left_edge <= pos[0] <= right_edge:
+                self.rect.x = pos[0]
 
 
 class Hand(pygame.sprite.Sprite):
@@ -114,19 +124,12 @@ class Hand(pygame.sprite.Sprite):
 
     def update(self, *args, move=0, pos=0):
 
-        if pos and pos[0] - Character.image_character.get_size()[0] > 0:
-            if Hand.image_flex_hand_part.get_size()[0] \
-                    <= pos[0] - Character.image_character.get_size()[0] <= \
-                    WIDTH - Platform.image_platform.get_size()[0] - Character.image_character.get_size()[0]:
+        if pos:
+            left_edge = Character.image_character.get_size()[0] + LeftWall.image_leftwall.get_size()[0]
+            right_edge = WIDTH - RightWall.image_rightwall.get_size()[0] - Platform.image_platform.get_size()[0]
+            if left_edge <= pos[0] <= right_edge:
                 self.image = pygame.transform.scale(self.image, (pos[0] - Character.image_character.get_size()[0],
-                                                             self.image.get_size()[1]))
-
-        if move:
-            size_x, size_y = self.image.get_size()
-            if Hand.image_flex_hand_part.get_size()[0] \
-                    <= size_x + move <= \
-                    WIDTH - Platform.image_platform.get_size()[0] - Character.image_character.get_size()[0]:
-                self.image = pygame.transform.scale(self.image, (size_x + move, size_y))
+                                                                 self.image.get_size()[1]))
 
 
 def main():
@@ -145,6 +148,7 @@ def main():
     UpWall(all_sprites, wall_sprites)
     LeftWall(all_sprites, wall_sprites)
     RightWall(all_sprites, wall_sprites)
+    BottomWall(all_sprites, wall_sprites)
 
     while running:
         for event in pygame.event.get():
@@ -152,12 +156,6 @@ def main():
                 running = False
             elif event.type == pygame.MOUSEMOTION:
                 hand_sprites.update(pos=event.pos)
-
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    hand_sprites.update(move=-MOVE_SPEED)
-                elif event.key == pygame.K_RIGHT:
-                    hand_sprites.update(move=MOVE_SPEED)
 
         main_screen.fill((255, 255, 255))
         all_sprites.draw(main_screen)
