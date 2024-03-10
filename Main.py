@@ -26,7 +26,7 @@ class Level(pygame.sprite.Sprite):
 
 
 class Ball(pygame.sprite.Sprite):
-    image_platform = load_image("ball_skin.png")
+    image_platform = load_image("ball.png")
 
     def __init__(self, *group):
         super().__init__(*group)
@@ -38,7 +38,7 @@ class Ball(pygame.sprite.Sprite):
 
 
 class Platform(pygame.sprite.Sprite):
-    image_platform = load_image("platform_skin1.png")
+    image_platform = load_image("platform.png")
 
     def __init__(self, *group):
         super().__init__(*group)
@@ -57,7 +57,7 @@ class Platform(pygame.sprite.Sprite):
 
 
 class Character(pygame.sprite.Sprite):
-    image_character = load_image("Main_char.png")
+    image_character = load_image("character.png")
 
     def __init__(self, *group):
         super().__init__(*group)
@@ -70,7 +70,7 @@ class Character(pygame.sprite.Sprite):
 
 
 class Hand(pygame.sprite.Sprite):
-    image_flex_hand_part = load_image("Hand_part.png")
+    image_flex_hand_part = load_image("hand_part.png")
 
     def __init__(self, *group):
         super().__init__(*group)
