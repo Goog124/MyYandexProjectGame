@@ -27,13 +27,8 @@ class Character(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.y = HEIGHT - self.image.get_size()[1]
 
-    def update(self):
+    def update(self, *args, **kwargs):
         pass
-
-
-class Level(pygame.sprite.Sprite):
-    def __init__(self, *group):
-        super().__init__(*group)
 
 
 class UpWall(pygame.sprite.Sprite):
@@ -86,29 +81,27 @@ class Ball(pygame.sprite.Sprite):
     def __init__(self, *group):
         super().__init__(*group)
         self.frames = []
-        self.cut_sheet(Ball.image_ball, 3, 1)
+        self.cut_sheet(Ball.image_ball, 3)
         self.cur_frame = 0
         self.image = self.frames[self.cur_frame]
         self.rect = self.rect.move(WIDTH // 2, HEIGHT // 2)
         self.clock = pygame.time.Clock()
 
-    def cut_sheet(self, sheet, columns, rows):
+    def cut_sheet(self, sheet, columns):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
-                                sheet.get_height() // rows)
-        for j in range(rows):
-            for i in range(columns):
-                frame_location = (self.rect.w * i, self.rect.h * j)
-                self.frames.append(sheet.subsurface(pygame.Rect(
-                    frame_location, self.rect.size)))
+                                sheet.get_height())
+        for i in range(columns):
+            frame_location = (self.rect.w * i, 0)
+            self.frames.append(sheet.subsurface(pygame.Rect(frame_location, self.rect.size)))
 
-    def update(self):
+    def update(self, *args, **kwargs):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
         self.image = self.frames[self.cur_frame]
-        #
-        # print(self.groups())
-        #
-        #
-        # self.clock.tick(60)
+
+        if "groups_list" in kwargs:
+            pass
+
+        self.clock.tick(60)
 
 
 class Platform(pygame.sprite.Sprite):
@@ -121,8 +114,9 @@ class Platform(pygame.sprite.Sprite):
         self.rect.x = Character.image_character.get_size()[0] + Hand.image_flex_hand_part.get_size()[0]
         self.rect.y = HEIGHT - (Character.image_character.get_size()[1] - 101)
 
-    def update(self, move=0, pos=0):
-        if pos:
+    def update(self, *args, **kwargs):
+        if "pos" in kwargs:
+            pos = kwargs["pos"]
             left_edge = Character.image_character.get_size()[0] + LeftWall.image_leftwall.get_size()[0]
             right_edge = WIDTH - RightWall.image_rightwall.get_size()[0] - Platform.image_platform.get_size()[0]
             if left_edge <= pos[0] <= right_edge:
@@ -139,9 +133,10 @@ class Hand(pygame.sprite.Sprite):
         self.rect.x = Character.image_character.get_size()[0]
         self.rect.y = HEIGHT - (Character.image_character.get_size()[1] - 128)
 
-    def update(self, *args, move=0, pos=0):
+    def update(self, *args, **kwargs):
 
-        if pos:
+        if "pos" in kwargs:
+            pos = kwargs["pos"]
             left_edge = Character.image_character.get_size()[0] + LeftWall.image_leftwall.get_size()[0]
             right_edge = WIDTH - RightWall.image_rightwall.get_size()[0] - Platform.image_platform.get_size()[0]
             if left_edge <= pos[0] <= right_edge:
@@ -157,9 +152,9 @@ def main():
 
     all_sprites = pygame.sprite.Group()
     hand_sprites = pygame.sprite.Group()
-    ball_sprite = pygame.sprite.Group()
     wall_sprites = pygame.sprite.Group()
-
+    ball_sprite = pygame.sprite.Group()
+    group_list = [all_sprites, hand_sprites, wall_sprites, ball_sprite]
     Platform(all_sprites, hand_sprites)
 
     Ball(all_sprites, ball_sprite)
