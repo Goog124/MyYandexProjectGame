@@ -146,8 +146,8 @@ class Platform(pygame.sprite.Sprite):
         super().__init__(*group)
         self.image = Platform.image_platform
         self.rect = self.image.get_rect()
-        self.rect.x = Character.image_character.get_size()[0] + Hand.image_flex_hand_part.get_size()[0]
-        self.rect.y = HEIGHT - (Character.image_character.get_size()[1] - 101)
+        self.rect.x = Character.image_character.get_width() + Hand.image_flex_hand_part.get_width()
+        self.rect.y = HEIGHT - (Character.image_character.get_height() - 101)
 
     def update(self, *args, **kwargs):
         if "pos" in kwargs:
