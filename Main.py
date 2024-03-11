@@ -4,7 +4,7 @@ import sys
 import random
 
 
-BALL_SPEED = 2
+BALL_SPEED = 4
 WIDTH = 1200
 HEIGHT = 1000
 
@@ -86,6 +86,8 @@ class Ball(pygame.sprite.Sprite):
         self.image = self.frames[self.cur_frame]
         self.rect = self.rect.move(WIDTH // 2, HEIGHT // 2)
         self.clock = pygame.time.Clock()
+        self.vy = 1
+        self.vx = 1
 
     def cut_sheet(self, sheet, columns):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
@@ -98,8 +100,34 @@ class Ball(pygame.sprite.Sprite):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
         self.image = self.frames[self.cur_frame]
 
-        if "groups_list" in kwargs:
-            pass
+        self.rect.x += BALL_SPEED * self.vx
+        self.rect.y += BALL_SPEED * self.vy
+
+        if "group_dict" in kwargs:
+            # kwargs["group_dict"]["wall_sprites"].sprites()
+            # [<UpWall Sprite(in 2 groups)>,
+            # <LeftWall Sprite(in 2 groups)>,
+            # <RightWall Sprite(in 2 groups)>,
+            # <BottomWall Sprite(in 2 groups)>]
+            if s := pygame.sprite.spritecollideany(self, kwargs["group_dict"]["wall_sprites"]):
+                if s is kwargs["group_dict"]["wall_sprites"].sprites()[3]:
+                    self.vy = -self.vy
+                if s is kwargs["group_dict"]["wall_sprites"].sprites()[2]:
+                    self.vx = -self.vx
+                if s is kwargs["group_dict"]["wall_sprites"].sprites()[1]:
+                    self.vx = -self.vx
+                if s is kwargs["group_dict"]["wall_sprites"].sprites()[0]:
+                    self.vy = -self.vy
+            # kwargs["group_dict"]["hand_sprites"].sprites()
+            # [<Platform Sprite(in 2 groups)>,
+            # <Hand Sprite(in 2 groups)>]
+            if s := pygame.sprite.spritecollideany(self, kwargs["group_dict"]["hand_sprites"]):
+                if s is kwargs["group_dict"]["hand_sprites"].sprites()[0]:
+                    self.vy = -self.vy
+
+                if s is kwargs["group_dict"]["hand_sprites"].sprites()[1]:
+                    self.vy = -self.vy
+
 
         self.clock.tick(60)
 
@@ -154,13 +182,15 @@ def main():
     hand_sprites = pygame.sprite.Group()
     wall_sprites = pygame.sprite.Group()
     ball_sprite = pygame.sprite.Group()
-    group_list = [all_sprites, hand_sprites, wall_sprites, ball_sprite]
+
+    group_dict = {"all_sprites": all_sprites,
+                  "hand_sprites": hand_sprites,
+                  "wall_sprites": wall_sprites,
+                  "ball_sprite": ball_sprite}
+
     Platform(all_sprites, hand_sprites)
-
     Ball(all_sprites, ball_sprite)
-
     Character(all_sprites)
-
     Hand(all_sprites, hand_sprites)
 
     UpWall(all_sprites, wall_sprites)
@@ -174,7 +204,7 @@ def main():
                 running = False
             elif event.type == pygame.MOUSEMOTION:
                 hand_sprites.update(pos=event.pos)
-        all_sprites.update()
+        all_sprites.update(group_dict=group_dict)
         main_screen.fill((255, 255, 255))
         all_sprites.draw(main_screen)
         pygame.display.flip()
