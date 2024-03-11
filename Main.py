@@ -105,7 +105,6 @@ class Ball(pygame.sprite.Sprite):
         self.rect.y += BALL_SPEED * self.vy
 
         if "group_dict" in kwargs:
-
             # kwargs["group_dict"]["wall_sprites"].sprites()
             # [<UpWall Sprite(in 2 groups)>,
             # <LeftWall Sprite(in 2 groups)>,
@@ -121,6 +120,7 @@ class Ball(pygame.sprite.Sprite):
                     self.vx = -self.vx
                 if s is kwargs["group_dict"]["wall_sprites"].sprites()[0]:
                     self.vy = -self.vy
+
             # kwargs["group_dict"]["hand_sprites"].sprites()
             # [<Platform Sprite(in 2 groups)>,
             # <Hand Sprite(in 2 groups)>]
@@ -174,6 +174,7 @@ class Hand(pygame.sprite.Sprite):
                                                                  self.image.get_size()[1]))
                 self.rect = pygame.Rect(self.rect.x, self.rect.y,
                                         self.rect.x + self.image.get_width(), self.rect.y + self.image.get_height())
+
 
 def main():
     pygame.init()
