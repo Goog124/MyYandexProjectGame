@@ -91,6 +91,7 @@ class Ball(pygame.sprite.Sprite):
         self.vy = 1
         self.vx = 1
         self.step = 1
+        self.a = 1
 
     def cut_sheet(self, sheet, columns):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
@@ -103,8 +104,8 @@ class Ball(pygame.sprite.Sprite):
         self.cur_frame = (self.cur_frame + self.step) % len(self.frames)
         self.image = self.frames[self.cur_frame]
 
-        self.rect.x += BALL_SPEED * self.vx
-        self.rect.y += BALL_SPEED * self.vy
+        self.rect.x += (BALL_SPEED + self.a) * self.vx
+        self.rect.y += (BALL_SPEED + self.a) * self.vy
 
         if "group_dict" in kwargs:
             # kwargs["group_dict"]["wall_sprites"].sprites()
@@ -130,7 +131,9 @@ class Ball(pygame.sprite.Sprite):
                 self.step = -self.step
                 if s is kwargs["group_dict"]["hand_sprites"].sprites()[0]:
                     self.vy = -self.vy
+                    self.a += 1
                 if s is kwargs["group_dict"]["hand_sprites"].sprites()[1]:
+                    self.a -= 1
                     self.vy = -self.vy
 
         self.clock.tick(60)
@@ -178,6 +181,16 @@ class Hand(pygame.sprite.Sprite):
                                         self.rect.x + self.image.get_width(), self.rect.y + self.image.get_height())
 
 
+def render_text(screen, char_sprite):
+    text_out1 = f"Здоровье: {char_sprite.sprites()[0].health}%"
+    text_out2 = f"Сюрикены: {char_sprite.sprites()[0].balls}"
+    font = pygame.font.Font(None, 35)
+    text = font.render(text_out1, True, (255, 0, 0))
+    screen.blit(text, (10, HEIGHT - Character.image_character.get_height() - 30))
+    text = font.render(text_out2, True, (0, 0, 0))
+    screen.blit(text, (25, HEIGHT - Character.image_character.get_height() - 60))
+
+
 def main():
     pygame.init()
     size = WIDTH, HEIGHT
@@ -188,15 +201,17 @@ def main():
     hand_sprites = pygame.sprite.Group()
     wall_sprites = pygame.sprite.Group()
     ball_sprite = pygame.sprite.Group()
+    char_sprite = pygame.sprite.GroupSingle()
 
     group_dict = {"all_sprites": all_sprites,
                   "hand_sprites": hand_sprites,
                   "wall_sprites": wall_sprites,
-                  "ball_sprite": ball_sprite}
+                  "ball_sprite": ball_sprite,
+                  "char_sprite": char_sprite}
 
     Platform(all_sprites, hand_sprites)
     Ball(all_sprites, ball_sprite)
-    Character(all_sprites)
+    Character(all_sprites, char_sprite)
     Hand(all_sprites, hand_sprites)
 
     UpWall(all_sprites, wall_sprites)
@@ -212,6 +227,7 @@ def main():
                 hand_sprites.update(pos=event.pos)
         all_sprites.update(group_dict=group_dict)
         main_screen.fill((255, 255, 255))
+        render_text(main_screen, char_sprite)
         all_sprites.draw(main_screen)
         pygame.display.flip()
 
