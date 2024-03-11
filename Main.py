@@ -25,7 +25,7 @@ class Character(pygame.sprite.Sprite):
         super().__init__(*group)
         self.image = Character.image_character
         self.rect = self.image.get_rect()
-        self.rect.y = HEIGHT - self.image.get_size()[1]
+        self.rect.y = HEIGHT - self.image.get_height()
 
     def update(self, *args, **kwargs):
         pass
@@ -88,6 +88,7 @@ class Ball(pygame.sprite.Sprite):
         self.clock = pygame.time.Clock()
         self.vy = 1
         self.vx = 1
+        self.step = 1
 
     def cut_sheet(self, sheet, columns):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
@@ -97,19 +98,21 @@ class Ball(pygame.sprite.Sprite):
             self.frames.append(sheet.subsurface(pygame.Rect(frame_location, self.rect.size)))
 
     def update(self, *args, **kwargs):
-        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.cur_frame = (self.cur_frame + self.step) % len(self.frames)
         self.image = self.frames[self.cur_frame]
 
         self.rect.x += BALL_SPEED * self.vx
         self.rect.y += BALL_SPEED * self.vy
 
         if "group_dict" in kwargs:
+
             # kwargs["group_dict"]["wall_sprites"].sprites()
             # [<UpWall Sprite(in 2 groups)>,
             # <LeftWall Sprite(in 2 groups)>,
             # <RightWall Sprite(in 2 groups)>,
             # <BottomWall Sprite(in 2 groups)>]
             if s := pygame.sprite.spritecollideany(self, kwargs["group_dict"]["wall_sprites"]):
+                self.step = -self.step
                 if s is kwargs["group_dict"]["wall_sprites"].sprites()[3]:
                     self.vy = -self.vy
                 if s is kwargs["group_dict"]["wall_sprites"].sprites()[2]:
@@ -122,12 +125,11 @@ class Ball(pygame.sprite.Sprite):
             # [<Platform Sprite(in 2 groups)>,
             # <Hand Sprite(in 2 groups)>]
             if s := pygame.sprite.spritecollideany(self, kwargs["group_dict"]["hand_sprites"]):
+                self.step = -self.step
                 if s is kwargs["group_dict"]["hand_sprites"].sprites()[0]:
                     self.vy = -self.vy
-
                 if s is kwargs["group_dict"]["hand_sprites"].sprites()[1]:
                     self.vy = -self.vy
-
 
         self.clock.tick(60)
 
@@ -170,7 +172,8 @@ class Hand(pygame.sprite.Sprite):
             if left_edge <= pos[0] <= right_edge:
                 self.image = pygame.transform.scale(self.image, (pos[0] - Character.image_character.get_size()[0],
                                                                  self.image.get_size()[1]))
-
+                self.rect = pygame.Rect(self.rect.x, self.rect.y,
+                                        self.rect.x + self.image.get_width(), self.rect.y + self.image.get_height())
 
 def main():
     pygame.init()
