@@ -26,6 +26,8 @@ class Character(pygame.sprite.Sprite):
         self.image = Character.image_character
         self.rect = self.image.get_rect()
         self.rect.y = HEIGHT - self.image.get_height()
+        self.health = 100
+        self.balls = 3
 
     def update(self, *args, **kwargs):
         pass
@@ -38,7 +40,7 @@ class UpWall(pygame.sprite.Sprite):
         super().__init__(*group)
         self.image = UpWall.image_upwall
         self.rect = self.image.get_rect()
-        self.rect.x = WIDTH - self.image.get_size()[0]
+        self.rect.x = WIDTH - self.image.get_width()
         self.rect.y = 0
 
 
@@ -49,7 +51,7 @@ class LeftWall(pygame.sprite.Sprite):
         super().__init__(*group)
         self.image = LeftWall.image_leftwall
         self.rect = self.image.get_rect()
-        self.rect.x = WIDTH - self.image.get_size()[0] - UpWall.image_upwall.get_size()[0]
+        self.rect.x = WIDTH - self.image.get_width() - UpWall.image_upwall.get_width()
         self.rect.y = 0
 
 
@@ -71,8 +73,8 @@ class BottomWall(pygame.sprite.Sprite):
         super().__init__(*group)
         self.image = BottomWall.image_pool
         self.rect = self.image.get_rect()
-        self.rect.x = Character.image_character.get_size()[0] - 2
-        self.rect.y = HEIGHT - BottomWall.image_pool.get_size()[1]
+        self.rect.x = Character.image_character.get_width() - 2
+        self.rect.y = HEIGHT - BottomWall.image_pool.get_height()
 
 
 class Ball(pygame.sprite.Sprite):
@@ -147,8 +149,8 @@ class Platform(pygame.sprite.Sprite):
     def update(self, *args, **kwargs):
         if "pos" in kwargs:
             pos = kwargs["pos"]
-            left_edge = Character.image_character.get_size()[0] + LeftWall.image_leftwall.get_size()[0]
-            right_edge = WIDTH - RightWall.image_rightwall.get_size()[0] - Platform.image_platform.get_size()[0]
+            left_edge = Character.image_character.get_width() + LeftWall.image_leftwall.get_width()
+            right_edge = WIDTH - RightWall.image_rightwall.get_width() - Platform.image_platform.get_width()
             if left_edge <= pos[0] <= right_edge:
                 self.rect.x = pos[0]
 
@@ -160,18 +162,18 @@ class Hand(pygame.sprite.Sprite):
         super().__init__(*group)
         self.image = Hand.image_flex_hand_part
         self.rect = self.image.get_rect()
-        self.rect.x = Character.image_character.get_size()[0]
-        self.rect.y = HEIGHT - (Character.image_character.get_size()[1] - 128)
+        self.rect.x = Character.image_character.get_width()
+        self.rect.y = HEIGHT - (Character.image_character.get_height() - 128)
 
     def update(self, *args, **kwargs):
 
         if "pos" in kwargs:
             pos = kwargs["pos"]
-            left_edge = Character.image_character.get_size()[0] + LeftWall.image_leftwall.get_size()[0]
-            right_edge = WIDTH - RightWall.image_rightwall.get_size()[0] - Platform.image_platform.get_size()[0]
+            left_edge = Character.image_character.get_width() + LeftWall.image_leftwall.get_width()
+            right_edge = WIDTH - RightWall.image_rightwall.get_width() - Platform.image_platform.get_width()
             if left_edge <= pos[0] <= right_edge:
-                self.image = pygame.transform.scale(self.image, (pos[0] - Character.image_character.get_size()[0],
-                                                                 self.image.get_size()[1]))
+                self.image = pygame.transform.scale(self.image, (pos[0] - Character.image_character.get_width(),
+                                                                 self.image.get_height()))
                 self.rect = pygame.Rect(self.rect.x, self.rect.y,
                                         self.rect.x + self.image.get_width(), self.rect.y + self.image.get_height())
 
