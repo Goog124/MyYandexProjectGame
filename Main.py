@@ -85,7 +85,7 @@ class Ball(pygame.sprite.Sprite):
     def __init__(self, *group):
         super().__init__(*group)
         self.frames = []
-        self.cut_sheet(Ball.image_ball, 3)
+        self.cut_sheet(Ball.image_ball, 5)
         self.cur_frame = 0
         self.image = self.frames[self.cur_frame]
         self.rect = self.rect.move(WIDTH // 2, HEIGHT // 2)
@@ -106,7 +106,7 @@ class Ball(pygame.sprite.Sprite):
             self.frames.append(sheet.subsurface(pygame.Rect(frame_location, self.rect.size)))
 
     def update(self, *args, **kwargs):
-        if self.animation_iter == 5:
+        if self.animation_iter == 3:
             self.cur_frame = (self.cur_frame + self.step) % len(self.frames)
             self.image = self.frames[self.cur_frame]
             self.animation_iter = 0
@@ -145,8 +145,8 @@ class Ball(pygame.sprite.Sprite):
                     self.vy += ACCELERATION
                 if s is kwargs["group_dict"]["hand_sprites"].sprites()[1] and self.vy_way > 0:
                     self.vy_way = -self.vy_way
-                    self.vx -= ACCELERATION
-                    self.vy -= ACCELERATION
+                    self.vx //= 2
+                    self.vy //= 2
                     kwargs["group_dict"]["char_sprite"].sprites()[0].health -= DAMAGE
 
 
