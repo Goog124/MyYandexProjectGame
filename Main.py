@@ -109,6 +109,7 @@ class Ball(pygame.sprite.Sprite):
             self.image = self.frames[self.cur_frame]
             self.animation_iter = 0
         self.animation_iter += 1
+
         tick = self.clock.tick()
         self.rect.x += int(self.vx * self.vx_way * tick / 60)
         self.rect.y += int(self.vy * self.vy_way * tick / 60)
