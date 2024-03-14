@@ -6,6 +6,7 @@ import random
 
 BALL_SPEED = 25
 ACCELERATION = 6
+DAMAGE = 20
 WIDTH = 1200
 HEIGHT = 1000
 
@@ -89,6 +90,7 @@ class Ball(pygame.sprite.Sprite):
         self.image = self.frames[self.cur_frame]
         self.rect = self.rect.move(WIDTH // 2, HEIGHT // 2)
         self.clock = pygame.time.Clock()
+        self.time = 0
         self.vy_way = 1
         self.vx_way = 1
         self.vx = BALL_SPEED
@@ -111,6 +113,7 @@ class Ball(pygame.sprite.Sprite):
         self.animation_iter += 1
 
         tick = self.clock.tick()
+        self.time += tick
         self.rect.x += int(self.vx * self.vx_way * tick / 60)
         self.rect.y += int(self.vy * self.vy_way * tick / 60)
 
@@ -144,7 +147,7 @@ class Ball(pygame.sprite.Sprite):
                     self.vy_way = -self.vy_way
                     self.vx -= ACCELERATION
                     self.vy -= ACCELERATION
-                    kwargs["group_dict"]["char_sprite"].sprites()[0].health -= self.vx
+                    kwargs["group_dict"]["char_sprite"].sprites()[0].health -= DAMAGE
 
 
 class Platform(pygame.sprite.Sprite):
@@ -192,13 +195,19 @@ class Hand(pygame.sprite.Sprite):
 def render_text(screen, group_dict):
     char_sprite = group_dict["char_sprite"]
     ball_sprite = group_dict["ball_sprite"]
-    text_out1 = f"Здоровье: {char_sprite.sprites()[0].health}%"
+    if char_sprite.sprites()[0].health > 0:
+        text_out1 = f"Здоровье: {char_sprite.sprites()[0].health}%"
+    else:
+        text_out1 = f"Здоровье: {0}%"
     text_out2 = f"Скорость: {ball_sprite.sprites()[0].vx}"
+    text_out3 = f"Время: {round(ball_sprite.sprites()[0].time / 1000, 1)} ceк"
     font = pygame.font.Font(None, 35)
     text = font.render(text_out1, True, (255, 0, 0))
     screen.blit(text, (10, HEIGHT - Character.image_character.get_height() - 30))
     text = font.render(text_out2, True, (0, 0, 0))
-    screen.blit(text, (25, HEIGHT - Character.image_character.get_height() - 60))
+    screen.blit(text, (10, HEIGHT - Character.image_character.get_height() - 60))
+    text = font.render(text_out3, True, (0, 255, 0))
+    screen.blit(text, (10, HEIGHT - Character.image_character.get_height() - 90))
 
 
 def main():
