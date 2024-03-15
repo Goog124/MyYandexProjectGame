@@ -5,7 +5,7 @@ import random
 
 
 BALL_SPEED = 25
-ACCELERATION = 6
+ACCELERATION = 8
 DAMAGE = 25
 WIDTH = 1200
 HEIGHT = 1000
@@ -224,7 +224,7 @@ class Buttons(pygame.sprite.Sprite):
         pass
 
 
-def render_text(screen, group_dict):
+def render_text(screen, group_dict, end=False):
     char_sprite = group_dict["char_sprite"]
     ball_sprite = group_dict["ball_sprite"]
     text_out0 = "Esc - выход"
@@ -246,6 +246,14 @@ def render_text(screen, group_dict):
         font = pygame.font.Font(None, 35)
         text = font.render(text_out, True, (0, 0, 0))
         screen.blit(text, (WIDTH // 2, HEIGHT // 2 - 40))
+
+    if end:
+        text_out0 = end
+        font = pygame.font.Font(None, 100)
+        text = font.render(text_out0, True, (0, 0, 0))
+        screen.blit(text, (WIDTH // 2, HEIGHT // 2))
+
+
 
 
 def start_game():
@@ -272,10 +280,13 @@ def start_game():
 
 def end_game(group_dict):
     if group_dict["char_sprite"].sprites()[0].health <= 0:
-        return False
+        return "health"
     elif group_dict["wall_sprites"].sprites()[3].on_collide:
-        return False
-    return True
+        return "pool"
+    rect = group_dict["ball_sprite"].sprites()[0].rect
+    if not rect.colliderect((0, 0, WIDTH, HEIGHT)):
+        return "leave"
+    return False
 
 
 def main():
@@ -289,7 +300,7 @@ def main():
     Buttons(menu_sprites, name="start")
     Buttons(menu_sprites, name="exit")
     while running:
-        if end_game(group_dict):
+        if not end_game(group_dict):
             if start:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -318,21 +329,16 @@ def main():
                             start = True
                 main_screen.blit(load_image("Menu_background.png"), (0, 0))
                 menu_sprites.draw(main_screen)
-            pygame.display.flip()
         else:
-            text_out0 = "Конец"
-            font = pygame.font.Font(None, 100)
-            text = font.render(text_out0, True, (0, 0, 0))
-            main_screen.blit(text, (WIDTH // 2, HEIGHT // 2))
-            pygame.display.flip()
+            end = end_game(group_dict)
+            render_text(main_screen, group_dict, end)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         start = False
-                        group_dict["ball_sprite"].sprites()[0].start = False
-
+        pygame.display.flip()
     pygame.quit()
 
 
