@@ -192,6 +192,27 @@ class Hand(pygame.sprite.Sprite):
                                         self.rect.x + self.image.get_width(), self.rect.y + self.image.get_height())
 
 
+class Buttons(pygame.sprite.Sprite):
+    image_buttons = load_image("Buttons.png")
+
+    def __init__(self, *group, name):
+        super().__init__(*group)
+        self.name = name
+        self.rect = pygame.Rect(0, 0, Buttons.image_buttons.get_width(), Buttons.image_buttons.get_height() // 3)
+        frame_location = {"start": (0, self.rect.y),
+                          "scores": (0, self.rect.y + (Buttons.image_buttons.get_height() // 3)),
+                          "exit": (0, self.rect.y + (Buttons.image_buttons.get_height() // 3) * 2)}
+        self.image = Buttons.image_buttons.subsurface(pygame.Rect(frame_location[name], self.rect.size))
+        self.rect.x = 850
+        self.rect.y = frame_location[name][1] + 200
+
+    def update(self, *args, **kwargs):
+        if "pos" in kwargs:
+            if self.rect.collidepoint(kwargs["pos"]):
+                return self.name
+
+
+
 def render_text(screen, group_dict):
     char_sprite = group_dict["char_sprite"]
     ball_sprite = group_dict["ball_sprite"]
@@ -215,13 +236,13 @@ def main():
     size = WIDTH, HEIGHT
     main_screen = pygame.display.set_mode(size)
     running = True
-
+    start = False
     all_sprites = pygame.sprite.Group()
     hand_sprites = pygame.sprite.Group()
     wall_sprites = pygame.sprite.Group()
     ball_sprite = pygame.sprite.GroupSingle()
     char_sprite = pygame.sprite.GroupSingle()
-
+    menu_sprites = pygame.sprite.Group()
     group_dict = {"all_sprites": all_sprites,
                   "hand_sprites": hand_sprites,
                   "wall_sprites": wall_sprites,
@@ -238,16 +259,33 @@ def main():
     RightWall(all_sprites, wall_sprites)
     BottomWall(all_sprites, wall_sprites)
 
+    Buttons(menu_sprites, name="start")
+    Buttons(menu_sprites, name="scores")
+    Buttons(menu_sprites, name="exit")
+
     while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.MOUSEMOTION:
-                hand_sprites.update(pos=event.pos)
-        all_sprites.update(group_dict=group_dict)
-        main_screen.fill((255, 255, 255))
-        render_text(main_screen, group_dict)
-        all_sprites.draw(main_screen)
+        if start:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                elif event.type == pygame.MOUSEMOTION:
+                    hand_sprites.update(pos=event.pos)
+            all_sprites.update(group_dict=group_dict)
+            main_screen.fill((255, 255, 255))
+            render_text(main_screen, group_dict)
+            all_sprites.draw(main_screen)
+        else:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if n := menu_sprites.update(pos=event.pos):
+                        if n == "start":
+                            start = True
+                        elif n == "exit":
+                            running = False
+            main_screen.blit(load_image("Menu_background.png"), (0, 0))
+            menu_sprites.draw(main_screen)
         pygame.display.flip()
 
     pygame.quit()
