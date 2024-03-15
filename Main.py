@@ -77,6 +77,7 @@ class BottomWall(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = Character.image_character.get_width() - 2
         self.rect.y = HEIGHT - BottomWall.image_pool.get_height()
+        self.on_collide = False
 
 
 class Ball(pygame.sprite.Sprite):
@@ -129,6 +130,7 @@ class Ball(pygame.sprite.Sprite):
                     self.step = -self.step
                     if s is kwargs["group_dict"]["wall_sprites"].sprites()[3] and self.vy_way > 0:
                         self.vy_way = -self.vy_way
+                        kwargs["group_dict"]["wall_sprites"].sprites()[3].on_collide = True
                     if s is kwargs["group_dict"]["wall_sprites"].sprites()[2] and self.vx_way > 0:
                         self.vx_way = -self.vx_way
                     if s is kwargs["group_dict"]["wall_sprites"].sprites()[1] and self.vx_way < 0:
@@ -269,6 +271,10 @@ def start_game():
 
 
 def end_game(group_dict):
+    if group_dict["char_sprite"].sprites()[0].health <= 0:
+        return False
+    elif group_dict["wall_sprites"].sprites()[3].on_collide:
+        return False
     return True
 
 
@@ -314,7 +320,18 @@ def main():
                 menu_sprites.draw(main_screen)
             pygame.display.flip()
         else:
-            pass
+            text_out0 = "Конец"
+            font = pygame.font.Font(None, 100)
+            text = font.render(text_out0, True, (0, 0, 0))
+            main_screen.blit(text, (WIDTH // 2, HEIGHT // 2))
+            pygame.display.flip()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        start = False
+                        group_dict["ball_sprite"].sprites()[0].start = False
 
     pygame.quit()
 
