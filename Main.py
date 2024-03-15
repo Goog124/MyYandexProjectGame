@@ -6,7 +6,7 @@ import random
 
 BALL_SPEED = 25
 ACCELERATION = 6
-DAMAGE = 20
+DAMAGE = 25
 WIDTH = 1200
 HEIGHT = 1000
 
@@ -97,6 +97,7 @@ class Ball(pygame.sprite.Sprite):
         self.vy = BALL_SPEED
         self.step = 1
         self.animation_iter = 0
+        self.start = False
 
     def cut_sheet(self, sheet, columns):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
@@ -106,48 +107,49 @@ class Ball(pygame.sprite.Sprite):
             self.frames.append(sheet.subsurface(pygame.Rect(frame_location, self.rect.size)))
 
     def update(self, *args, **kwargs):
-        if self.animation_iter == 3:
-            self.cur_frame = (self.cur_frame + self.step) % len(self.frames)
-            self.image = self.frames[self.cur_frame]
-            self.animation_iter = 0
-        self.animation_iter += 1
-
         tick = self.clock.tick()
-        self.time += tick
-        self.rect.x += int(self.vx * self.vx_way * tick / 60)
-        self.rect.y += int(self.vy * self.vy_way * tick / 60)
+        if kwargs["start"] and self.start:
+            if self.animation_iter == 3:
+                self.cur_frame = (self.cur_frame + self.step) % len(self.frames)
+                self.image = self.frames[self.cur_frame]
+                self.animation_iter = 0
+            self.animation_iter += 1
 
-        if "group_dict" in kwargs:
-            # kwargs["group_dict"]["wall_sprites"].sprites()
-            # [<UpWall Sprite(in 2 groups)>,
-            # <LeftWall Sprite(in 2 groups)>,
-            # <RightWall Sprite(in 2 groups)>,
-            # <BottomWall Sprite(in 2 groups)>]
-            if s := pygame.sprite.spritecollideany(self, kwargs["group_dict"]["wall_sprites"]):
-                self.step = -self.step
-                if s is kwargs["group_dict"]["wall_sprites"].sprites()[3] and self.vy_way > 0:
-                    self.vy_way = -self.vy_way
-                if s is kwargs["group_dict"]["wall_sprites"].sprites()[2] and self.vx_way > 0:
-                    self.vx_way = -self.vx_way
-                if s is kwargs["group_dict"]["wall_sprites"].sprites()[1] and self.vx_way < 0:
-                    self.vx_way = -self.vx_way
-                if s is kwargs["group_dict"]["wall_sprites"].sprites()[0] and self.vy_way < 0:
-                    self.vy_way = -self.vy_way
+            self.time += tick
+            self.rect.x += int(self.vx * self.vx_way * tick / 60)
+            self.rect.y += int(self.vy * self.vy_way * tick / 60)
 
-            # kwargs["group_dict"]["hand_sprites"].sprites()
-            # [<Platform Sprite(in 2 groups)>,
-            # <Hand Sprite(in 2 groups)>]
-            if s := pygame.sprite.spritecollideany(self, kwargs["group_dict"]["hand_sprites"]):
-                self.step = -self.step
-                if s is kwargs["group_dict"]["hand_sprites"].sprites()[0] and self.vy_way > 0:
-                    self.vy_way = -self.vy_way
-                    self.vx += ACCELERATION
-                    self.vy += ACCELERATION
-                if s is kwargs["group_dict"]["hand_sprites"].sprites()[1] and self.vy_way > 0:
-                    self.vy_way = -self.vy_way
-                    self.vx //= 2
-                    self.vy //= 2
-                    kwargs["group_dict"]["char_sprite"].sprites()[0].health -= DAMAGE
+            if "group_dict" in kwargs:
+                # kwargs["group_dict"]["wall_sprites"].sprites()
+                # [<UpWall Sprite(in 2 groups)>,
+                # <LeftWall Sprite(in 2 groups)>,
+                # <RightWall Sprite(in 2 groups)>,
+                # <BottomWall Sprite(in 2 groups)>]
+                if s := pygame.sprite.spritecollideany(self, kwargs["group_dict"]["wall_sprites"]):
+                    self.step = -self.step
+                    if s is kwargs["group_dict"]["wall_sprites"].sprites()[3] and self.vy_way > 0:
+                        self.vy_way = -self.vy_way
+                    if s is kwargs["group_dict"]["wall_sprites"].sprites()[2] and self.vx_way > 0:
+                        self.vx_way = -self.vx_way
+                    if s is kwargs["group_dict"]["wall_sprites"].sprites()[1] and self.vx_way < 0:
+                        self.vx_way = -self.vx_way
+                    if s is kwargs["group_dict"]["wall_sprites"].sprites()[0] and self.vy_way < 0:
+                        self.vy_way = -self.vy_way
+
+                # kwargs["group_dict"]["hand_sprites"].sprites()
+                # [<Platform Sprite(in 2 groups)>,
+                # <Hand Sprite(in 2 groups)>]
+                if s := pygame.sprite.spritecollideany(self, kwargs["group_dict"]["hand_sprites"]):
+                    self.step = -self.step
+                    if s is kwargs["group_dict"]["hand_sprites"].sprites()[0] and self.vy_way > 0:
+                        self.vy_way = -self.vy_way
+                        self.vx += ACCELERATION
+                        self.vy += ACCELERATION
+                    if s is kwargs["group_dict"]["hand_sprites"].sprites()[1] and self.vy_way > 0:
+                        self.vy_way = -self.vy_way
+                        self.vx = max(self.vx // 2, BALL_SPEED)
+                        self.vy = max(self.vy // 2, BALL_SPEED)
+                        kwargs["group_dict"]["char_sprite"].sprites()[0].health -= DAMAGE
 
 
 class Platform(pygame.sprite.Sprite):
@@ -167,6 +169,10 @@ class Platform(pygame.sprite.Sprite):
             right_edge = WIDTH - RightWall.image_rightwall.get_width() - Platform.image_platform.get_width()
             if left_edge <= pos[0] <= right_edge:
                 self.rect.x = pos[0]
+            elif left_edge > pos[0]:
+                self.rect.x = left_edge
+            elif right_edge < pos[0]:
+                self.rect.x = right_edge
 
 
 class Hand(pygame.sprite.Sprite):
@@ -185,11 +191,17 @@ class Hand(pygame.sprite.Sprite):
             pos = kwargs["pos"]
             left_edge = Character.image_character.get_width() + LeftWall.image_leftwall.get_width()
             right_edge = WIDTH - RightWall.image_rightwall.get_width() - Platform.image_platform.get_width()
+            res = None
             if left_edge <= pos[0] <= right_edge:
-                self.image = pygame.transform.scale(self.image, (pos[0] - Character.image_character.get_width(),
-                                                                 self.image.get_height()))
-                self.rect = pygame.Rect(self.rect.x, self.rect.y,
-                                        self.rect.x + self.image.get_width(), self.rect.y + self.image.get_height())
+                res = pos[0]
+            elif left_edge > pos[0]:
+                res = left_edge
+            elif right_edge < pos[0]:
+                res = right_edge
+            self.image = pygame.transform.scale(self.image, (res - Character.image_character.get_width(),
+                                                             self.image.get_height()))
+            self.rect = pygame.Rect(self.rect.x, self.rect.y,
+                                    self.rect.x + self.image.get_width(), self.rect.y + self.image.get_height())
 
 
 class Buttons(pygame.sprite.Sprite):
@@ -207,28 +219,57 @@ class Buttons(pygame.sprite.Sprite):
         self.rect.y = frame_location[name][1] + 200
 
     def update(self, *args, **kwargs):
-        if "pos" in kwargs:
-            if self.rect.collidepoint(kwargs["pos"]):
-                return self.name
-
+        pass
 
 
 def render_text(screen, group_dict):
     char_sprite = group_dict["char_sprite"]
     ball_sprite = group_dict["ball_sprite"]
-    if char_sprite.sprites()[0].health > 0:
-        text_out1 = f"Здоровье: {char_sprite.sprites()[0].health}%"
-    else:
-        text_out1 = f"Здоровье: {0}%"
+    text_out0 = "Esc - выход"
+    text_out1 = f"Здоровье: {max(char_sprite.sprites()[0].health, 0)}%"
     text_out2 = f"Скорость: {ball_sprite.sprites()[0].vx}"
     text_out3 = f"Время: {round(ball_sprite.sprites()[0].time / 1000, 1)} ceк"
     font = pygame.font.Font(None, 35)
+    text = font.render(text_out0, True, (0, 0, 0))
+    screen.blit(text, (10, 0))
     text = font.render(text_out1, True, (255, 0, 0))
     screen.blit(text, (10, HEIGHT - Character.image_character.get_height() - 30))
     text = font.render(text_out2, True, (0, 0, 0))
     screen.blit(text, (10, HEIGHT - Character.image_character.get_height() - 60))
     text = font.render(text_out3, True, (0, 255, 0))
     screen.blit(text, (10, HEIGHT - Character.image_character.get_height() - 90))
+
+    if not group_dict["ball_sprite"].sprites()[0].start:
+        text_out = "Пробел - чтобы начать"
+        font = pygame.font.Font(None, 35)
+        text = font.render(text_out, True, (0, 0, 0))
+        screen.blit(text, (WIDTH // 2, HEIGHT // 2 - 40))
+
+
+def start_game():
+    all_sprites = pygame.sprite.Group()
+    hand_sprites = pygame.sprite.Group()
+    wall_sprites = pygame.sprite.Group()
+    ball_sprite = pygame.sprite.GroupSingle()
+    char_sprite = pygame.sprite.GroupSingle()
+    Platform(all_sprites, hand_sprites)
+    Ball(all_sprites, ball_sprite)
+    Character(all_sprites, char_sprite)
+    Hand(all_sprites, hand_sprites)
+    UpWall(all_sprites, wall_sprites)
+    LeftWall(all_sprites, wall_sprites)
+    RightWall(all_sprites, wall_sprites)
+    BottomWall(all_sprites, wall_sprites)
+    group_dict = {"all_sprites": all_sprites,
+                  "hand_sprites": hand_sprites,
+                  "wall_sprites": wall_sprites,
+                  "ball_sprite": ball_sprite,
+                  "char_sprite": char_sprite}
+    return group_dict
+
+
+def end_game(group_dict):
+    return True
 
 
 def main():
@@ -237,56 +278,43 @@ def main():
     main_screen = pygame.display.set_mode(size)
     running = True
     start = False
-    all_sprites = pygame.sprite.Group()
-    hand_sprites = pygame.sprite.Group()
-    wall_sprites = pygame.sprite.Group()
-    ball_sprite = pygame.sprite.GroupSingle()
-    char_sprite = pygame.sprite.GroupSingle()
+    group_dict = start_game()
     menu_sprites = pygame.sprite.Group()
-    group_dict = {"all_sprites": all_sprites,
-                  "hand_sprites": hand_sprites,
-                  "wall_sprites": wall_sprites,
-                  "ball_sprite": ball_sprite,
-                  "char_sprite": char_sprite}
-
-    Platform(all_sprites, hand_sprites)
-    Ball(all_sprites, ball_sprite)
-    Character(all_sprites, char_sprite)
-    Hand(all_sprites, hand_sprites)
-
-    UpWall(all_sprites, wall_sprites)
-    LeftWall(all_sprites, wall_sprites)
-    RightWall(all_sprites, wall_sprites)
-    BottomWall(all_sprites, wall_sprites)
-
     Buttons(menu_sprites, name="start")
-    Buttons(menu_sprites, name="scores")
     Buttons(menu_sprites, name="exit")
-
     while running:
-        if start:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                elif event.type == pygame.MOUSEMOTION:
-                    hand_sprites.update(pos=event.pos)
-            all_sprites.update(group_dict=group_dict)
-            main_screen.fill((255, 255, 255))
-            render_text(main_screen, group_dict)
-            all_sprites.draw(main_screen)
-        else:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if n := menu_sprites.update(pos=event.pos):
-                        if n == "start":
-                            start = True
-                        elif n == "exit":
+        if end_game(group_dict):
+            if start:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        running = False
+                    elif event.type == pygame.MOUSEMOTION:
+                        group_dict["hand_sprites"].update(pos=event.pos)
+                    elif event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_SPACE:
+                            group_dict["ball_sprite"].sprites()[0].start = True
+                        if event.key == pygame.K_ESCAPE:
+                            start = False
+                            group_dict["ball_sprite"].sprites()[0].start = False
+
+                group_dict["all_sprites"].update(group_dict=group_dict, start=start)
+                main_screen.fill((255, 255, 255))
+                render_text(main_screen, group_dict)
+                group_dict["all_sprites"].draw(main_screen)
+            else:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        running = False
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        if menu_sprites.sprites()[1].rect.collidepoint(event.pos):
                             running = False
-            main_screen.blit(load_image("Menu_background.png"), (0, 0))
-            menu_sprites.draw(main_screen)
-        pygame.display.flip()
+                        if menu_sprites.sprites()[0].rect.collidepoint(event.pos):
+                            start = True
+                main_screen.blit(load_image("Menu_background.png"), (0, 0))
+                menu_sprites.draw(main_screen)
+            pygame.display.flip()
+        else:
+            pass
 
     pygame.quit()
 
