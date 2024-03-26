@@ -1,7 +1,6 @@
 import pygame
 import os
 import sys
-import random
 
 
 BALL_SPEED = 25
@@ -109,7 +108,7 @@ class Ball(pygame.sprite.Sprite):
 
     def update(self, *args, **kwargs):
         tick = self.clock.tick()
-        if kwargs["start"] and self.start:
+        if self.start:
             if self.animation_iter == 3:
                 self.cur_frame = (self.cur_frame + self.step) % len(self.frames)
                 self.image = self.frames[self.cur_frame]
@@ -254,6 +253,29 @@ def render_text(screen, group_dict, end=False):
         screen.blit(text, (WIDTH // 2, HEIGHT // 2))
 
 
+def terminate():
+    pygame.quit()
+    sys.exit()
+
+
+def main_menu(main_screen):
+    menu_sprites = pygame.sprite.Group()
+    Buttons(menu_sprites, name="start")
+    Buttons(menu_sprites, name="exit")
+    running = True
+    while running:
+        pygame.mouse.set_visible(True)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if menu_sprites.sprites()[1].rect.collidepoint(event.pos):
+                    terminate()
+                if menu_sprites.sprites()[0].rect.collidepoint(event.pos):
+                    return True
+        main_screen.blit(load_image("Menu_background.png"), (0, 0))
+        menu_sprites.draw(main_screen)
+        pygame.display.flip()
 
 
 def start_game():
@@ -278,15 +300,52 @@ def start_game():
     return group_dict
 
 
-def end_game(group_dict):
+def end_game(group_dict, esc=False):
+    time = round(group_dict["ball_sprite"].sprites()[0].time / 1000, 1)
     if group_dict["char_sprite"].sprites()[0].health <= 0:
-        return "health"
+        group_dict.clear()
+        return "health", time
     elif group_dict["wall_sprites"].sprites()[3].on_collide:
-        return "pool"
+        group_dict.clear()
+        return "pool", time
     rect = group_dict["ball_sprite"].sprites()[0].rect
     if not rect.colliderect((0, 0, WIDTH, HEIGHT)):
-        return "leave"
+        group_dict.clear()
+        return "leave", time
+    if esc:
+        group_dict.clear()
     return False
+
+
+def end_screen(main_screen, end):
+    text_out_list = ["Конец игры!",
+                     "Ваш ниндзя ",
+                     "Время игры: "]
+    end_dict = {
+        "health": "сильно поранился!",
+        "pool": "уронил сюрикен",
+        "leave": "так разогнал сюрикен, что тот улетел",
+    }
+    running = True
+    pygame.mouse.set_visible(True)
+    time = end[1]
+    end = end_dict[end[0]]
+    while running:
+        font = pygame.font.Font(None, 60)
+        text = font.render(text_out_list[0], True, (255, 0, 0))
+        main_screen.blit(text, (WIDTH // 2 - 150, HEIGHT // 2 - 40))
+        text = font.render(text_out_list[1] + end, True, (0, 0, 0))
+        main_screen.blit(text, (WIDTH // 2 - 150, HEIGHT // 2 + 10))
+        text = font.render(text_out_list[2] + str(time) + " сек", True, (0, 0, 0))
+        main_screen.blit(text, (WIDTH // 2 - 150, HEIGHT // 2 + 60))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return
+        pygame.display.flip()
+
 
 
 def main():
@@ -296,49 +355,32 @@ def main():
     running = True
     start = False
     group_dict = start_game()
-    menu_sprites = pygame.sprite.Group()
-    Buttons(menu_sprites, name="start")
-    Buttons(menu_sprites, name="exit")
     while running:
-        if not end_game(group_dict):
-            if start:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        running = False
-                    elif event.type == pygame.MOUSEMOTION:
-                        group_dict["hand_sprites"].update(pos=event.pos)
-                    elif event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_SPACE:
-                            group_dict["ball_sprite"].sprites()[0].start = True
-                        if event.key == pygame.K_ESCAPE:
-                            start = False
-                            group_dict["ball_sprite"].sprites()[0].start = False
-
-                group_dict["all_sprites"].update(group_dict=group_dict, start=start)
-                main_screen.fill((255, 255, 255))
-                render_text(main_screen, group_dict)
-                group_dict["all_sprites"].draw(main_screen)
-            else:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        running = False
-                    elif event.type == pygame.MOUSEBUTTONDOWN:
-                        if menu_sprites.sprites()[1].rect.collidepoint(event.pos):
-                            running = False
-                        if menu_sprites.sprites()[0].rect.collidepoint(event.pos):
-                            start = True
-                main_screen.blit(load_image("Menu_background.png"), (0, 0))
-                menu_sprites.draw(main_screen)
-        else:
-            end = end_game(group_dict)
-            render_text(main_screen, group_dict, end)
+        if start:
+            pygame.mouse.set_visible(False)
+            main_screen.fill((255, 255, 255))
+            render_text(main_screen, group_dict)
+            group_dict["all_sprites"].update(group_dict=group_dict)
+            group_dict["all_sprites"].draw(main_screen)
+            if end := end_game(group_dict):
+                end_screen(main_screen, end)
+                start = False
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
+                    terminate()
+                elif event.type == pygame.MOUSEMOTION:
+                    group_dict["hand_sprites"].update(pos=event.pos)
                 elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        group_dict["ball_sprite"].sprites()[0].start = True
                     if event.key == pygame.K_ESCAPE:
+                        end_game(group_dict, esc=True)
                         start = False
-        pygame.display.flip()
+            pygame.display.flip()
+        else:
+            start = main_menu(main_screen)
+            group_dict = start_game()
+
     pygame.quit()
 
 
