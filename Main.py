@@ -109,7 +109,7 @@ class Ball(pygame.sprite.Sprite):
     def update(self, *args, **kwargs):
         tick = self.clock.tick()
         if self.start:
-            if self.animation_iter == 3:
+            if self.animation_iter == 2:
                 self.cur_frame = (self.cur_frame + self.step) % len(self.frames)
                 self.image = self.frames[self.cur_frame]
                 self.animation_iter = 0
@@ -325,7 +325,7 @@ def end_screen(main_screen, end):
     time = end[1]
     end = end_dict[end[0]]
     while running:
-        font = pygame.font.Font(None, 60)
+        font = pygame.font.Font(None, 50)
         text = font.render(text_out_list[0], True, (255, 0, 0))
         main_screen.blit(text, (WIDTH // 2 - 250, HEIGHT // 2 - 40))
         text = font.render(text_out_list[1] + end, True, (0, 0, 0))
