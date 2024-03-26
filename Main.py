@@ -327,11 +327,11 @@ def end_screen(main_screen, end):
     while running:
         font = pygame.font.Font(None, 50)
         text = font.render(text_out_list[0], True, (255, 0, 0))
-        main_screen.blit(text, (WIDTH // 2 - 250, HEIGHT // 2 - 40))
+        main_screen.blit(text, (WIDTH // 2 - 290, HEIGHT // 2 - 40))
         text = font.render(text_out_list[1] + end, True, (0, 0, 0))
-        main_screen.blit(text, (WIDTH // 2 - 250, HEIGHT // 2 + 10))
+        main_screen.blit(text, (WIDTH // 2 - 290, HEIGHT // 2 + 10))
         text = font.render(text_out_list[2] + str(time) + " сек", True, (0, 0, 0))
-        main_screen.blit(text, (WIDTH // 2 - 250, HEIGHT // 2 + 60))
+        main_screen.blit(text, (WIDTH // 2 - 290, HEIGHT // 2 + 60))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
