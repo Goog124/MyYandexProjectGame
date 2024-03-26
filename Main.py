@@ -223,7 +223,7 @@ class Buttons(pygame.sprite.Sprite):
         pass
 
 
-def render_text(screen, group_dict, end=False):
+def render_text(screen, group_dict):
     char_sprite = group_dict["char_sprite"]
     ball_sprite = group_dict["ball_sprite"]
     text_out0 = "Esc - выход"
@@ -245,12 +245,6 @@ def render_text(screen, group_dict, end=False):
         font = pygame.font.Font(None, 35)
         text = font.render(text_out, True, (0, 0, 0))
         screen.blit(text, (WIDTH // 2, HEIGHT // 2 - 40))
-
-    if end:
-        text_out0 = end
-        font = pygame.font.Font(None, 100)
-        text = font.render(text_out0, True, (0, 0, 0))
-        screen.blit(text, (WIDTH // 2, HEIGHT // 2))
 
 
 def terminate():
@@ -333,11 +327,11 @@ def end_screen(main_screen, end):
     while running:
         font = pygame.font.Font(None, 60)
         text = font.render(text_out_list[0], True, (255, 0, 0))
-        main_screen.blit(text, (WIDTH // 2 - 150, HEIGHT // 2 - 40))
+        main_screen.blit(text, (WIDTH // 2 - 250, HEIGHT // 2 - 40))
         text = font.render(text_out_list[1] + end, True, (0, 0, 0))
-        main_screen.blit(text, (WIDTH // 2 - 150, HEIGHT // 2 + 10))
+        main_screen.blit(text, (WIDTH // 2 - 250, HEIGHT // 2 + 10))
         text = font.render(text_out_list[2] + str(time) + " сек", True, (0, 0, 0))
-        main_screen.blit(text, (WIDTH // 2 - 150, HEIGHT // 2 + 60))
+        main_screen.blit(text, (WIDTH // 2 - 250, HEIGHT // 2 + 60))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
@@ -345,7 +339,6 @@ def end_screen(main_screen, end):
                 if event.key == pygame.K_ESCAPE:
                     return
         pygame.display.flip()
-
 
 
 def main():
