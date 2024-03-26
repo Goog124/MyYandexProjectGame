@@ -349,7 +349,7 @@ def main():
     start = False
     group_dict = start_game()
     while running:
-        if start:
+        if start and group_dict:
             pygame.mouse.set_visible(False)
             main_screen.fill((255, 255, 255))
             render_text(main_screen, group_dict)
@@ -361,7 +361,7 @@ def main():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     terminate()
-                elif event.type == pygame.MOUSEMOTION:
+                elif event.type == pygame.MOUSEMOTION and group_dict:
                     group_dict["hand_sprites"].update(pos=event.pos)
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
